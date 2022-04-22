@@ -528,7 +528,7 @@ def run_simulation(num_robots, speed, capacity, width, height, dirt_amount, min_
 #   to the StandardRobot when the aspect ratio of the room increases.
 # 
 #   Overall conclusions: If you have a squared room, don't repair your Faulty iRobot. 
-#   Consider buying another FaultyRobot, if you get a good price.
+#   Consider buying another FaultyRobot, if you get a good price.  
 #
 
 

@@ -1,3 +1,6 @@
+# This file was uncompyled from the file test.pyc with library uncompyle6
+# uncompyle6 -o PS3/benchmark.py PS3/test.pyc
+
 # uncompyle6 version 3.8.0
 # Python bytecode 3.5 (3350)
 # Decompiled from: Python 3.8.10 (default, Mar 15 2022, 12:22:08) 
@@ -5,7 +8,7 @@
 # Embedded file name: ps3_solutions.py
 # Compiled at: 2016-11-10 03:38:40
 # Size of source mod 2**32: 19384 bytes
-# uncompyle6 -o PS3/benchmark.py PS3/test.pyc
+
 import math, random, ps3_visualize, pylab
 from ps3_verify_movement27 import test_robot_movement
 
