@@ -7,6 +7,8 @@
 import math
 import time
 
+#You need to install tkinter to visualize
+#sudo apt-get install python3-tk
 from tkinter import *
 import matplotlib
 matplotlib.use('TkAgg')

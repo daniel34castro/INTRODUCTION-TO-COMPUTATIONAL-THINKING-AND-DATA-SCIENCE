@@ -6,9 +6,10 @@ import threading
 import traceback
 import unittest
 import random
-import imp
-
-test = imp.load_compiled("test", "test.pyc")
+# import imp
+import benchmark as test
+# test = imp.load_compiled("test", "test.pyc")
+# test =import
 import ps3
 
 def xyrange(x_upper_bound, y_upper_bound):
@@ -586,10 +587,10 @@ class ps3_P5_Faulty(SimulationTester):
 if __name__ == "__main__":
     suite = unittest.TestSuite()
     suite.addTest(unittest.makeSuite(ps3_P1A))
-    suite.addTest(unittest.makeSuite(ps3_P1B))
-    suite.addTest(unittest.makeSuite(ps3_P2_ER))
-    suite.addTest(unittest.makeSuite(ps3_P2_FR))
-    suite.addTest(unittest.makeSuite(ps3_P3))
-    suite.addTest(unittest.makeSuite(ps3_P5_Standard))
-    suite.addTest(unittest.makeSuite(ps3_P5_Faulty))
+    # suite.addTest(unittest.makeSuite(ps3_P1B))
+    # suite.addTest(unittest.makeSuite(ps3_P2_ER))
+    # suite.addTest(unittest.makeSuite(ps3_P2_FR))
+    # suite.addTest(unittest.makeSuite(ps3_P3))
+    # suite.addTest(unittest.makeSuite(ps3_P5_Standard))
+    # suite.addTest(unittest.makeSuite(ps3_P5_Faulty))
     unittest.TextTestRunner(verbosity=3).run(suite)
