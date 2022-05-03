@@ -1,5 +1,5 @@
 # Problem Set 4: Simulating the Spread of Disease and Bacteria Population Dynamics
-# Name:
+# Name:Daniel Castro
 # Collaborators (Discussion):
 # Time:
 
@@ -8,7 +8,6 @@ import numpy as np
 import pylab as pl  ##pylab is discouraged in 2022
 import matplotlib.pyplot as plt
 import random
-import statistics
 
 
 ##########################
@@ -44,7 +43,7 @@ def make_one_curve_plot(x_coords, y_coords, x_label, y_label, title):
     pl.show()
 
 
-def make_two_curve_plot(x_coords,
+def make_two_curve_plot(
                         y_coords1,
                         y_coords2,
                         y_name1,
@@ -57,18 +56,18 @@ def make_two_curve_plot(x_coords,
     the set of y coordinates provided.
 
     Args:
-        x_coords (list of floats): the x coordinates to graph
+        x_coords (list of floats): the x coordinates to graph. Deleted by the author
         y_coords1 (list of floats): the first set of y coordinates to graph
         y_coords2 (list of floats): the second set of y-coordinates to graph
         y_name1 (str): name describing the first y-coordinates line
-        y_name2 (str): name describing the second y-coordinates line
+        y_name2 (str): name describing the second y-coordinates line )
         x_label (str): label for the x-axis
         y_label (str): label for the y-axis
         title (str): the title of the graph
     """
     pl.figure()
-    pl.plot(x_coords, y_coords1, label=y_name1)
-    pl.plot(x_coords, y_coords2, label=y_name2)
+    pl.plot(y_coords1, label=y_name1)
+    pl.plot(y_coords2, label=y_name2)
     pl.legend()
     pl.xlabel(x_label)
     pl.ylabel(y_label)
@@ -134,7 +133,6 @@ class SimpleBacteria(object):
         if random.random() < p:
             return SimpleBacteria(self.birth_prob, self.death_prob)
         raise(NoChildException)
-
 
 class Patient(object):
     """
@@ -204,10 +202,6 @@ class Patient(object):
     def __str__(self) -> str:
         return str(len(self.bacteria))+' '+ str(self.max_pop)
 
-
-
-
-
 ##########################
 # PROBLEM 2
 ##########################
@@ -226,8 +220,6 @@ def calc_pop_avg(populations, n):
     pop_np=np.array(populations)
     return pop_np.mean(axis=0)[n]
     
-
-
 def simulation_without_antibiotic(num_bacteria,
                                   max_pop,
                                   birth_prob,
@@ -272,8 +264,6 @@ def simulation_without_antibiotic(num_bacteria,
             pop_trial.append(pat.get_total_pop())
         populations.append(pop_trial)
     return populations
-
-
 
 
 # When you are ready to run the simulation, uncomment the next line
@@ -363,11 +353,14 @@ class ResistantBacteria(SimpleBacteria):
                 bacteria cell. This is the maximum probability of the
                 offspring acquiring antibiotic resistance
         """
-        pass  # TODO
+        SimpleBacteria.__init__(self, birth_prob, death_prob)
+        self.resistant=resistant
+        self.mut_prob=mut_prob
+
 
     def get_resistant(self):
         """Returns whether the bacteria has antibiotic resistance"""
-        pass  # TODO
+        return self.resistant
 
     def is_killed(self):
         """Stochastically determines whether this bacteria cell is killed in
@@ -381,7 +374,10 @@ class ResistantBacteria(SimpleBacteria):
             bool: True if the bacteria dies with the appropriate probability
                 and False otherwise.
         """
-        pass  # TODO
+        if self.resistant:
+            return random.random() < self.death_prob
+        else:
+            return random.random() < (self.death_prob/4)
 
     def reproduce(self, pop_density):
         """
@@ -412,7 +408,14 @@ class ResistantBacteria(SimpleBacteria):
             as this bacteria. Otherwise, raises a NoChildException if this
             bacteria cell does not reproduce.
         """
-        pass  # TODO
+        p=self.birth_prob * (1 - pop_density)
+        if random.random() < p:
+            if self.resistant:
+                offspring_res=True
+            else:
+                offspring_res=random.random() < self.mut_prob * (1-pop_density)
+            return ResistantBacteria(self.birth_prob, self.death_prob,offspring_res,self.mut_prob)
+        raise(NoChildException)
 
 
 class TreatedPatient(Patient):
@@ -435,14 +438,15 @@ class TreatedPatient(Patient):
         Don't forget to call Patient's __init__ method at the start of this
         method.
         """
-        pass  # TODO
+        Patient.__init__(self, bacteria, max_pop)
+        self.on_antibiotic=False
 
     def set_on_antibiotic(self):
         """
         Administer an antibiotic to this patient. The antibiotic acts on the
         bacteria population for all subsequent time steps.
         """
-        pass  # TODO
+        self.on_antibiotic=True
 
     def get_resist_pop(self):
         """
@@ -451,7 +455,13 @@ class TreatedPatient(Patient):
         Returns:
             int: the number of bacteria with antibiotic resistance
         """
-        pass  # TODO
+        count_bact_res=0
+        for bact in self.bacteria:
+            if bact.get_resistant():
+                count_bact_res+=1
+        return count_bact_res
+
+
 
     def update(self):
         """
@@ -478,8 +488,21 @@ class TreatedPatient(Patient):
         Returns:
             int: The total bacteria population at the end of the update
         """
-        pass  # TODO
+        surviving_bact=[bact for bact in self.bacteria if not bact.is_killed()]
+        if self.on_antibiotic:
+            surviving_bact=[bact for bact in surviving_bact if bact.get_resistant()]
+        pop_density=self.get_total_pop()/self.max_pop
+        offstrings=[]
+        for bact in surviving_bact:
+            try:
+                offstrings.append(bact.reproduce(pop_density))
+            except Exception as e:
+                pass
+        self.bacteria=surviving_bact+offstrings
 
+
+# bat=ResistantBacteria(SimpleBacteria(1,1))
+# print(bat.get_resistant())
 
 ##########################
 # PROBLEM 5
@@ -529,7 +552,21 @@ def simulation_with_antibiotic(num_bacteria,
             resistant_pop[i][j] is the number of resistant bacteria for
             trial i at time step j
     """
-    pass  # TODO
+    populations=[]
+    resistant_pop=[]
+    for trial in range(num_trials):
+        pop_trial=[]
+        resistant_pop_trial=[]
+        pat= TreatedPatient([ResistantBacteria(birth_prob,death_prob,resistant,mut_prob)]*num_bacteria,max_pop)
+        for timestep in range(400):
+            if timestep==149:
+                pat.set_on_antibiotic()
+            pat.update()
+            pop_trial.append(pat.get_total_pop())
+            resistant_pop_trial.append(pat.get_resist_pop())
+        populations.append(pop_trial)
+        resistant_pop.append(resistant_pop_trial)
+    return (populations, resistant_pop)
 
 
 # When you are ready to run the simulations, uncomment the next lines one
@@ -549,3 +586,33 @@ def simulation_with_antibiotic(num_bacteria,
 #                                                       resistant=False,
 #                                                       mut_prob=0.8,
 #                                                       num_trials=50)
+
+#Uncomment to plot a graph
+# pop_np=np.array(total_pop)
+# res_np=np.array(resistant_pop)
+
+# make_two_curve_plot(pop_np.mean(axis=0),
+#                         res_np.mean(axis=0),
+#                         "Total",
+#                         "Resistant",
+#                         "Timestep",
+#                         "Average Population",
+#                         "With antibiotic")
+
+
+
+
+"""
+#########   WRITEUP   #########
+
+1. What happens to the total population before introducing the antibiotic?
+    Before introducing the antibiotic the total population is higher than the resistant.
+2. What happens to the resistant bacteria population before introducing the antibiotic?
+    There are not many resistant bacteria because the probability of a non resistant bacteria
+    reproducing a resistant offspring is low, if the pop_density is high. 
+3. What happens to the total population after introducing the antibiotic?
+    Decreases because all the non resistant baterias die
+4. What happens to the resistant bacteria population after introducing the antibiotic?
+    They tend to increase because the pop_density drops and a resistant bacteria
+    reproduces a resistant offspring
+"""
