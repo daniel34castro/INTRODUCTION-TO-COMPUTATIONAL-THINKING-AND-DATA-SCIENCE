@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Problem Set 5: Experimental Analysis
-# Name: 
+# Name: Daniel Castro
 # Collaborators (discussion):
 # Time:
 
@@ -116,6 +116,12 @@ class Climate(object):
         assert day in self.rawdata[city][year][month], "provided day is not available"
         return self.rawdata[city][year][month][day]
 
+# Testing class Climate
+# year2000=Climate('PS5/data.csv').get_yearly_temp('BOSTON', 2000)
+# print(year2000)
+# somedate=Climate('PS5/data.csv').get_daily_temp('BOSTON', 2, 4, 2000)
+# print(somedate)
+
 def se_over_slope(x, y, estimated, model):
     """
     For a linear regression model, calculate the ratio of the standard error of
@@ -163,9 +169,10 @@ def generate_models(x, y, degs):
         a list of pylab arrays, where each array is a 1-d array of coefficients
         that minimizes the squared error of the fitting polynomial
     """
-    # TODO
-    pass
-
+    output = []
+    for deg in degs:
+        output.append(pylab.polyfit(x,y,deg))
+    return output
 
 def r_squared(y, estimated):
     """
@@ -180,8 +187,18 @@ def r_squared(y, estimated):
     Returns:
         a float for the R-squared error term
     """
-    # TODO
-    pass
+    num = (y-estimated)**2
+    num = num.sum()
+    mean = pylab.mean(y)
+    dem = (y-mean)**2
+    dem = dem.sum()
+    return 1-num/dem
+
+
+    
+# a=pylab.array([1961, 1962, 1963])
+# b=pylab.array([1971, 1972, 1973])
+# print(r_squared(a,b))
 
 def evaluate_models_on_training(x, y, models):
     """
@@ -209,8 +226,32 @@ def evaluate_models_on_training(x, y, models):
     Returns:
         None
     """
-    # TODO
-    pass
+    for model in models:
+        pylab.figure()
+        pylab.scatter(x,y, label='Data points', color = 'b')
+        est=[pylab.poly1d(model)(x_i) for x_i in x]
+        pylab.plot(x,est, label='Model generated', color = 'r')
+        pylab.legend()
+        pylab.xlabel('Years')
+        pylab.ylabel('Degrees (ºC)')
+        r=r_squared(y, est)
+        model_degree = len(model)-1
+
+        # If degree of model is 1, then calculate se/slope and add to a string
+        string_se=''
+        if model_degree==1:
+            string_se = 'se = %.3f' % se_over_slope(x, y, est, model)
+        
+        pylab.title('Degree ' + str(model_degree) \
+            + '\n' + string_se+ \
+                ' ; r^2 = %.3f' % r ) 
+        pylab.show()
+
+# Testing evaluate_models_on_training      
+# x = pylab.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+# y = pylab.array([15, 14, 13, 7, 5, 5, 8, 10, 16, 20])
+# models=generate_models(x, y, [1,2,3])
+# evaluate_models_on_training(x, y, models)
 
 def gen_cities_avg(climate, multi_cities, years):
     """
@@ -310,13 +351,41 @@ def evaluate_models_on_testing(x, y, models):
 
 if __name__ == '__main__':
 
-    pass 
-
     # Part A.4
-    # TODO: replace this line with your code
+    climate = Climate('PS5/data.csv')
+    years = pylab.array(range(1961,2009+1))
+    temp_jan_10 = [climate.get_daily_temp('NEW YORK', 1, 10, year) for year in years]
+    temp_jan_10 = pylab.array(temp_jan_10)
+    models=generate_models(years, temp_jan_10, [1])
+    evaluate_models_on_training(years, temp_jan_10, models)
+    temp_anual=[climate.get_yearly_temp('NEW YORK', year).mean() for year in years]
+    temp_anual=pylab.array(temp_anual)
+    models=generate_models(years, temp_anual, [1])
+    evaluate_models_on_training(years, temp_anual, models)
 
+
+    """
+    ● What difference does choosing a specific day to plot the data for versus calculating 
+    the yearly average have on our graphs (i.e., in terms of the R 2 values and the fit of 
+    the resulting curves)? Interpret the results. 
+    
+    By choosing the a specific day, the variance of the temperature is higher. The distance 
+    between points and the model slope is bigger. Therefore, the R 2 value is worst (smaller)
+    
+    ● Why do you think these graphs are so noisy? Which one is more noisy?
+    Because temperature varies depending on the year. Temperature on the January 10th is more noisy
+    because on the anual temperature the differences between years get averaged out. 
+    
+    ● How do these graphs support or contradict the claim that global warming is leading to an increase 
+    in temperature? The slope and the standard error-to-slope ratio could be helpful in thinking about this.
+    
+    The graphs support the claim that global warning is leading to an increase in temperature. In both graphs 
+    there is a positive trend, validated by the standard error-to-slope ratio.
+    """
+    
     # Part B
     # TODO: replace this line with your code
+
 
     # Part C
     # TODO: replace this line with your code
