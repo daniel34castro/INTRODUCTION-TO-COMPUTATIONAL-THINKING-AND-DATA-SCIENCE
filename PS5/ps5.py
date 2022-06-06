@@ -4,6 +4,7 @@
 # Collaborators (discussion):
 # Time:
 
+import numpy as np
 import pylab
 import re
 
@@ -194,8 +195,7 @@ def r_squared(y, estimated):
     dem = dem.sum()
     return 1-num/dem
 
-
-    
+# Testing r_squared  
 # a=pylab.array([1961, 1962, 1963])
 # b=pylab.array([1971, 1972, 1973])
 # print(r_squared(a,b))
@@ -268,9 +268,14 @@ def gen_cities_avg(climate, multi_cities, years):
         this array corresponds to the average annual temperature over the given
         cities for a given year.
     """
-    # TODO
-    pass
-
+    year_avg=[]
+    for year in years:
+        cities_yearly_avg=[]
+        for city in multi_cities:
+            cities_yearly_avg.append(pylab.array(climate.get_yearly_temp(city, year)).mean())
+        year_avg.append(pylab.array(cities_yearly_avg).mean())
+    return pylab.array(year_avg)
+    
 def moving_average(y, window_length):
     """
     Compute the moving average of y with specified window length.
@@ -285,9 +290,15 @@ def moving_average(y, window_length):
         an 1-d pylab array with the same length as y storing moving average of
         y-coordinates of the N sample points
     """
-    # TODO
-    pass
-
+    moving_avg=[]
+    for i in range(1,len(y)+1):
+        window=range(max(0,i-window_length),i)
+        window_temp=[]
+        for window_index in window:
+            window_temp.append(y[window_index])
+        moving_avg.append(pylab.array(window_temp).mean())
+    return pylab.array(moving_avg)
+            
 def rmse(y, estimated):
     """
     Calculate the root mean square error term.
@@ -301,8 +312,10 @@ def rmse(y, estimated):
     Returns:
         a float for the root mean square error term
     """
-    # TODO
-    pass
+    num = (y-estimated)**2
+    num = num.sum()
+    dem = y.shape[0]
+    return (num/dem)**0.5
 
 def gen_std_devs(climate, multi_cities, years):
     """
@@ -319,13 +332,22 @@ def gen_std_devs(climate, multi_cities, years):
         this array corresponds to the standard deviation of the average annual 
         city temperatures for the given cities in a given year.
     """
-    # TODO
-    pass
+    year_std=[]
+    for year in years:
+        cities_yearly=[]
+        for city in multi_cities:
+            temp_byyear_bycity=climate.get_yearly_temp(city, year)
+            cities_yearly.append(temp_byyear_bycity)
+        temp_city_avg=pylab.array(cities_yearly).mean(axis=0)
+        # city_avg=np.mean(cities_yearly, axis=0)
+        year_std.append(pylab.array(temp_city_avg).std())
+    return pylab.array(year_std)
+    
 
 def evaluate_models_on_testing(x, y, models):
     """
     For each regression model, compute the RMSE for this model and plot the
-    test data along with the model’s estimation.
+    test data along with the model's estimation.
 
     For the plots, you should plot data points (x,y) as blue dots and your best
     fit curve (aka model) as a red solid line. You should also label the axes
@@ -346,24 +368,37 @@ def evaluate_models_on_testing(x, y, models):
     Returns:
         None
     """
-    # TODO
-    pass
+    for model in models:
+        pylab.figure()
+        pylab.scatter(x,y, label='Data points', color = 'b')
+        est=[pylab.poly1d(model)(x_i) for x_i in x]
+        pylab.plot(x,est, label='Model generated', color = 'y')
+        pylab.legend()
+        pylab.xlabel('Years')
+        pylab.ylabel('STD')
+        rmse_value=rmse(y, est)
+        model_degree = len(model)-1
+
+        
+        pylab.title('Degree ' + str(model_degree) \
+                    + ' ; rmse = %.3f' % rmse_value ) 
+        pylab.show()
 
 if __name__ == '__main__':
 
-    # Part A.4
     climate = Climate('PS5/data.csv')
     years = pylab.array(range(1961,2009+1))
-    temp_jan_10 = [climate.get_daily_temp('NEW YORK', 1, 10, year) for year in years]
-    temp_jan_10 = pylab.array(temp_jan_10)
-    models=generate_models(years, temp_jan_10, [1])
-    evaluate_models_on_training(years, temp_jan_10, models)
-    temp_anual=[climate.get_yearly_temp('NEW YORK', year).mean() for year in years]
-    temp_anual=pylab.array(temp_anual)
-    models=generate_models(years, temp_anual, [1])
-    evaluate_models_on_training(years, temp_anual, models)
 
-
+    # Part A.4
+    # temp_jan_10 = [climate.get_daily_temp('NEW YORK', 1, 10, year) for year in years]
+    # temp_jan_10 = pylab.array(temp_jan_10)
+    # models=generate_models(years, temp_jan_10, [1])
+    # evaluate_models_on_training(years, temp_jan_10, models)
+    # temp_anual=[climate.get_yearly_temp('NEW YORK', year).mean() for year in years]
+    # temp_anual=pylab.array(temp_anual)
+    # models=generate_models(years, temp_anual, [1])
+    # evaluate_models_on_training(years, temp_anual, models)
+    
     """
     ● What difference does choosing a specific day to plot the data for versus calculating 
     the yearly average have on our graphs (i.e., in terms of the R 2 values and the fit of 
@@ -384,14 +419,121 @@ if __name__ == '__main__':
     """
     
     # Part B
-    # TODO: replace this line with your code
+
+    # national_yearly_avg=gen_cities_avg(climate, CITIES , list(years))
+    # models=generate_models(years, national_yearly_avg, [1])
+    # evaluate_models_on_training(years, national_yearly_avg, models)
+
+    """
+    ● How does this graph compare to the graphs from part A (i.e., in terms of
+    the R 2 values, the fit of the resulting curves, and whether the graph
+    supports/contradicts our claim about global warming)? Interpret the
+    results.
+
+    The model for the graph Part B4 has a higher r², which means that slope has less error for predicting
+    the values of yearly tempeatures averaged by city.
+    Therefore we can assert with more certainty the claim about the global warning.
+
+    ● Why do you think this is the case?
+    The data points, that represented the averaged yearly temperatures, have less variance between years 
+    making it easier for the model to minimize the distance from the slope to the data points.
 
 
+    ● How would we expect the results to differ if we used 3 different cities?
+    What about 100 different cities?
+    If we used only 3 cities the r² would be significantly smaller, around 0.2 or 0.3.
+    When we increased the number o cities the variability year-to-year of the temperature decreases
+    because it the outliers get averaged out. Therefore the r² increases. 
+
+
+    ● How would the results have changed if all 21 cities were in the same region
+    of the United States (for ex., New England)?
+    There would be less variability of temperature between cities, assuming that all cities in 
+    New England have a similar temperature along the year. Not sure what would happen to r².
+    If you know please make a suggestion to modify the code.
+    """
+    
     # Part C
-    # TODO: replace this line with your code
+    # national_yearly_avg=gen_cities_avg(climate, CITIES , list(years))
+    # mov_avg=moving_average(national_yearly_avg, 5)
+    # models=generate_models(years, mov_avg, [1])
+    # evaluate_models_on_training(years, mov_avg, models)
 
-    # Part D.2
-    # TODO: replace this line with your code
+    """
+    ● How does this graph compare to the graphs from part A and B ( i.e., in
+    terms of the R 2 values, the fit of the resulting curves, and whether the
+    graph supports/contradicts our claim about global warming)? Interpret the
+    results.
+    Using the moving average the r² value get even higher.
+
+    ● Why do you think this is the case?
+    Same reason as before. Yearly temperatures get even more averaged out that
+    results in less variability between consecutive years.
+
+    """
+
+    # Part D.2.I
+    # training_years=pylab.array(TRAINING_INTERVAL)
+    # national_yearly_avg=gen_cities_avg(climate, CITIES , list(TRAINING_INTERVAL))
+    # mov_avg=moving_average(national_yearly_avg, 5)
+    # models=generate_models(training_years, mov_avg, [1,2,20])
+    # evaluate_models_on_training(training_years, mov_avg, models)
+    
+    """
+    ● How do these models compare to each other?
+    These use different degrees of a polynomial to fit the training data.
+
+    ● Which one has the best R2? Why?
+    The model of degree 20 because it overfits the data.
+
+    ● Which model best fits the data? Why?
+
+    """
+    # Part D.2.I
+    # training_years=pylab.array(TRAINING_INTERVAL)
+    # national_yearly_avg=gen_cities_avg(climate, CITIES , list(TRAINING_INTERVAL))
+    # mov_avg=moving_average(national_yearly_avg, 5)
+    # models=generate_models(training_years, mov_avg, [1,2,20])
+    # testing_years=pylab.array(TESTING_INTERVAL)
+    # national_yearly_avg_testing=gen_cities_avg(climate, CITIES , list(TESTING_INTERVAL))
+    # mov_avg_testing=moving_average(national_yearly_avg_testing, 5)
+    # evaluate_models_on_testing(testing_years, mov_avg_testing, models)
+    """
+    ● How did the different models perform? How did their RMSEs compare?
+    
+    ● Which model performed the best? Which model performed the worst? 
+    Are they the same as those in part D.2.I? Why?
+
+    Degree 1 model perfomed best which proves it the best suited to 
+    predict the temperature rises in the following year.
+    Degree 20 model perfomed worst, it is clearly overfitting the data.
+    RMSEs values are better in the models with worst r² in D.2.I.
+
+    ●If we had generated the models using the A.4.II data 
+    (i.e. average annual temperature of New York City) 
+    instead of the 5-year moving average over 22 cities, 
+    how would the prediction results 2010-2015 have changed?
+
+    """
+
 
     # Part E
-    # TODO: replace this line with your code
+    training_years=pylab.array(TRAINING_INTERVAL)
+    national_yearly_std= gen_std_devs(climate, CITIES , list(TRAINING_INTERVAL))
+    mov_std=moving_average(national_yearly_std, 5)
+    models=generate_models(training_years, mov_std, [1])
+    evaluate_models_on_training(training_years, mov_std, models)
+    
+    """
+    ●Does the result match our claim (i.e., temperature variation is getting 
+    larger over these years)?
+    No, actually it is getting smaller. 
+
+    ●Can you think of ways to improve our analysis?
+    Measure the standard deviation along different years. 
+    """
+
+
+# temp_array=[6.8007729489975439, 6.9344723094071865, 7.2965004501815818, 6.8077243598168549, 6.5055948680511539, 6.959087494608867, 6.4889799240243695, 6.9510430337868963, 7.0585431115159478, 7.0977420580318782, 6.8386579785236048, 6.731347077523127, 6.6616225764762902, 6.4092396746786013, 6.6214217100011084, 6.7136104957814435, 7.2575482189983553, 7.263276360210706, 7.1787611973720633, 7.0859352578611796, 6.8736741252762821, 6.7957043866857889, 7.0815549177622765, 6.7249974778654433, 7.2162729580931124, 6.4560372283957266, 6.7288306794528907, 6.9720986945202927, 6.922958341746317, 6.3033645588306086, 6.5330170805999908, 6.2777429551963237, 6.8488629387504032, 6.8257830274740625, 6.7856101061465059, 6.7592782215870484, 6.6634050127541604, 6.4486321701001552, 6.3413248952817742, 6.7637674361128752, 6.5519930751275384, 6.6831654464946064, 6.7751550280705839, 6.7435411127318146, 6.8720508861149154, 6.381528250607194, 6.9707944558310109, 6.7582457290380731, 6.7451346848899991]
+# pylab.scatter(y=temp_array, x=TRAINING_INTERVAL)
+# pylab.show()
